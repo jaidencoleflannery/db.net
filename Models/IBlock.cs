@@ -1,4 +1,4 @@
-namespace Models.DbBlockStorage;
+namespace BlockStorage;
 
 public interface IBlock {
     /// <summary>

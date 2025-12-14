@@ -1,6 +1,6 @@
-namespace Models.DbBlockStorage;
+namespace BlockStorage;
 
-public interface IDbBlockStorage {
+public interface IBlockStorage {
 
     /// <summary>
         /// retrieve total size of block
@@ -19,7 +19,7 @@ public interface IDbBlockStorage {
     /// <summary>
         /// retrieve size of block's contents
     /// </summary>
-    public BlockContentSize {
+    public ContentSize {
         get;
     } 
 
