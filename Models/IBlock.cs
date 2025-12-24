@@ -18,7 +18,7 @@ public interface IBlock {
     void SetHeader (int id, long value);
 
     /// <summary>
-        /// write to {buffer} contents from {srcOffset} location
+        /// write to {buffer} contents at offset position {offset} from {srcOffset} location
     /// </summary>
     void Read (byte[] buffer, int offset, int srcOffset, int count);
 

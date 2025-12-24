@@ -55,10 +55,25 @@ public class Block : IBlock {
 		
 		// each header is a long type, which is 8 bytes of data
 		int position = (id * 8);
-		byte[] buffer = new byte[8];
+		byte[] buffer = new byte[8]; 
 
 		BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
 		this.stream.WriteExactly(buffer, position, headerSize);
+	}
+
+	public void Read(byte[]buffer, int offset, int srcOffset, uint count) {
+		if(isDisposted) throw new ObjectDisposedException("Block");
+		if((count + srcOffset) > storage.ContentSize) throw new ArgumentOutOfRangeException("Index (count + srcOffset) location exceeds bounds of block content.");
+		if((storage.ContentSize - (count + srcOffset)) > buffer.Length) throw new ArgumentOutOfRangeException("Target byte array not large enough to fit contents.");
+
+		this.stream.ReadExactly(buffer, offset, srcOffset);
+	}
+
+	public void Write(byte[] buffer, int offset, int count) {
+		if(isDisposted) throw new ObjectDisposedException("Block");
+		if((count + offset) > storage.ContentSize) throw new ArgumentOutOfRangeException("Size of contents (count + offset) exceeds bounds of block content.");
+
+		this.stream.WriteExactly(buffer, offset, count);
 	}
 
 }
