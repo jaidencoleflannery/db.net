@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Buffers.Binary;
 
 namespace BlockStorage;
 
@@ -40,9 +41,24 @@ public class Block : IBlock {
 			throw new ArgumentNullException(nameof(stream);
 		}
 
+	
+		// each header is a long type, which is 8 bytes of data 
 		int position = (id * 8);
 		byte[] buffer = new byte[8];
 
-		this.stream.ReadExactly(buffer, 0, );
+		this.stream.ReadExactly(buffer, 0, position);
+		return BinaryPrimitives.ReadInt64LittleEndian(buffer);
 	}
+
+	public void setHeader(uint id, long value) {	
+		if(id > 5) return ArgumentException("id must be <= 5 (maximum number of headers per block).");
+		
+		// each header is a long type, which is 8 bytes of data
+		int position = (id * 8);
+		byte[] buffer = new byte[8];
+
+		BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
+		this.stream.WriteExactly(buffer, position, headerSize);
+	}
+
 }
