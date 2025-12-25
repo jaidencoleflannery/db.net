@@ -76,4 +76,9 @@ public class Block : IBlock {
 		this.stream.WriteExactly(buffer, offset, count);
 	}
 
+	public void Dispose() {
+		Dispose();
+		GC.SuppressFinalize(this);
+	}
+
 }
