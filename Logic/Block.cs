@@ -5,8 +5,9 @@ using System.Buffers.Binary;
 
 namespace BlockStorage;
 
+// Block is just the core mechanics of a block of memory.
 public class Block : IBlock {
-	private readonly uint id;
+	public readonly uint Id { get; private set; }
 	private readonly Stream stream;
 	private readonly long[] headers = new long[5];
 	private readonly BlockStorage storage;
@@ -17,9 +18,7 @@ public class Block : IBlock {
 
 	public event EventHandler disposed;
 
-	public uint Id => id;
-
-	public Block(BlockStorage storage, uint id, Stream stream, byte[] firstSector) {	
+	public Block(BlockStorage storage, uint id, Stream stream, byte[] firstSector) {
 		if(stream == null) {
 			throw new ArgumentNullException(nameof(stream));
 		}
@@ -38,7 +37,7 @@ public class Block : IBlock {
 			throw new ArgumentException(nameof(id));
 		}
 		if(stream == null) {
-			throw new ArgumentNullException(nameof(stream);
+			throw new ArgumentNullException(nameof(stream));
 		}
 
 	
@@ -50,7 +49,8 @@ public class Block : IBlock {
 		return BinaryPrimitives.ReadInt64LittleEndian(buffer);
 	}
 
-	public void setHeader(uint id, long value) {	
+	public void setHeader(uint id, long value) {
+        // this does not seem accurate - revisit maximum num of headers
 		if(id > 5) return ArgumentException("id must be <= 5 (maximum number of headers per block).");
 		
 		// each header is a long type, which is 8 bytes of data

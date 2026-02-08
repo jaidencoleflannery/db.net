@@ -4,50 +4,45 @@ using System.IO;
 
 namespace BlockStorage;
 
+// blockstorage is basically a service for block which implements the api for functionality.
 public class BlockStorage : IBlockStorage {
+    readonly Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
     readonly Stream stream;
     readonly int blockSize;
     readonly int headerSize;
     readonly int contentSize;
-    readonly int unitOfWork;
-    readonly Dictionary<uint, Block> blocks = new Dictionary<uint, Block>()
+    readonly int unitOfWork; 
 
     public int DiskSectorSize => unitOfWork;
-
     public int BlockSize => blockSize; 
-
     public int ContentSize => contentSize;
+    public int HeaderSize => headerSize;
 
-    public int HeaderSize => headerSize
-
-    public BlockStorage(Stream stream, blockSize = 4096, headerSize = 48) {
-        if(stream == null) {
+    public BlockStorage(Stream stream, int blockSize = 4096, int headerSize = 48) {
+        if(stream == null)
             return ArgumentException("BlockStorage parameter {stream} is null.");
-        }
-        if(blockSize <= headerSize) {
+        if(blockSize <= headerSize)
             return ArgumentException("BlockStorage parameter {blockSize} cannot be less than or equal to {headerSize}, since {headerSize} is contained within the block.");
-        }
-        if(blockSize < 128) {
-            return ArgumentException("BlockStorage parameter {blockSize} cannot be less than 128 bytes.");
-        }
+        if(blockSize < 128)
+            return ArgumentException("BlockStorage parameter {blockSize} cannot be less than 128 bytes."); 
 
-        this.unitOfWork = (blockSize >= 4096) ? 4096 : 128;
         this.blockSize = blockSize;
+        this.unitOfWork = (blockSize >= 4096) ? 4096 : 128;
         this.headerSize = headerSize;
         this.contentSize = blockSize - headerSize;
         this.stream = stream;
     }
-
+ 
     public IBlock Find(uint id) {
         // we dynamically create each block as we find it - if we have found it before, just return it from our cache
+        
         if(blocks.TryGetValue(id, out Block block)) return block;
 
         // {blockId} is ordered, so we can find our position by scaling off {blockSize}
         int position = blockId * blockSize;
         // we are attempting to read a {blockSize} worth of data from stream, so if there is less than between position and end of stream, we will be hitting memory that is not ours
-        if((position + blockSize) > this.stream.Length) {
-            return null;
-        }
+        if((position + blockSize) > this.stream.Length)
+            return null; 
 
         // just grab the first "sector" of data to construct our new block
         byte[] firstSector = new byte[DiskSectorSize];
