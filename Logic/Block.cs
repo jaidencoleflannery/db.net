@@ -7,7 +7,7 @@ namespace BlockStorage;
 
 // Block is just the core mechanics of a block of memory.
 public class Block : IBlock {
-	private readonly uint id;
+	public readonly uint Id { get; private set; }
 	private readonly Stream stream;
 	private readonly long[] headers = new long[5];
 	private readonly BlockStorage storage;
@@ -17,8 +17,6 @@ public class Block : IBlock {
 	private bool isFirstSectorDirty = false;
 
 	public event EventHandler disposed;
-
-	public uint Id => id;
 
 	public Block(BlockStorage storage, uint id, Stream stream, byte[] firstSector) {
 		if(stream == null) {
