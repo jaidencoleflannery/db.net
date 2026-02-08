@@ -17,12 +17,12 @@ public interface IBlock : IDisposable {
     /// <summary>
     /// change value of a specific header to {value};
     /// </summary>
-    void SetHeader (int id, long value);
+    void SetHeader (uint id, long value);
 
     /// <summary>
     /// write to {buffer} contents at offset position {offset} from {srcOffset} location
     /// </summary>
-    void Read (byte[] buffer, int offset, int srcOffset, int count);
+    void Read (byte[] buffer, int offset, int headerOffset, uint count);
 
     /// <summary>
     /// write {buffer} contents into {offset} location

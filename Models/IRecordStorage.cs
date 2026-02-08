@@ -4,7 +4,7 @@ public interface IRecordStorage {
     /// <summary>
         /// get the record's first block's unique identifier
     /// </summary>
-    public Id { get; }
+    uint Id { get; }
 
     /// <summary>
         /// retrieve data from a specified block of data within the record instance

@@ -62,8 +62,8 @@ public class BlockStorage : IBlockStorage {
 
         var id = (uint)Math.Ceiling((double)this.stream.Length / (double)this.blockSize);
 
-        this.stream.SetLength((long)((id * blockSize) blockSize));
-        this.stream.Flush()
+        this.stream.SetLength((long)((id * blockSize) + blockSize));
+        this.stream.Flush();
 
         var block = new Block(this, id, new byte[DiskSectorSize], this.stream);
 
