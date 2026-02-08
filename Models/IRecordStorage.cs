@@ -1,4 +1,4 @@
-namespace Models.DbRecordStorage;
+namespace db.net.RecordStorage;
 
 public interface IRecordStorage {
     /// <summary>

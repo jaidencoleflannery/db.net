@@ -1,4 +1,4 @@
-namespace RecordStorage;
+namespace db.net.RecordStorage;
 
 public class RecordStorage : IRecordStorage {
 

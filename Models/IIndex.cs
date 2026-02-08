@@ -1,4 +1,4 @@
-namespace Models.Index;
+namespace db.net.Index;
 
 public interface IIndex<K, V> {
     /// <summary>

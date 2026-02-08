@@ -1,4 +1,4 @@
-namespace BlockStorage;
+namespace db.net.BlockStorage;
 
 public interface IBlockStorage {
 

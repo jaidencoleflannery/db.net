@@ -1,6 +1,6 @@
 using System;
 
-namespace BlockStorage;
+namespace db.net.BlockStorage;
 
 public interface IBlock : IDisposable {
     /// <summary>

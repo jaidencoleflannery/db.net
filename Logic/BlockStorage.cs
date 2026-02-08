@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace BlockStorage;
+namespace db.net.BlockStorage;
 
 // blockstorage is basically a service for block which implements the api for functionality.
 public class BlockStorage : IBlockStorage {

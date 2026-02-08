@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
 
-namespace BlockStorage;
+namespace db.net.BlockStorage;
 
 // Block is just the core mechanics of a block of memory.
 public class Block : IBlock {
