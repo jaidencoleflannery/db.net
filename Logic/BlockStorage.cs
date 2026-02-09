@@ -20,11 +20,11 @@ public class BlockStorage : IBlockStorage {
 
     public BlockStorage(Stream stream, int blockSize = 4096, int headerSize = 48) {
         if(stream == null)
-            return ArgumentException("BlockStorage parameter {stream} is null.");
+            throw new ArgumentException("BlockStorage parameter {stream} is null.");
         if(blockSize <= headerSize)
-            return ArgumentException("BlockStorage parameter {blockSize} cannot be less than or equal to {headerSize}, since {headerSize} is contained within the block.");
+            throw new ArgumentException("BlockStorage parameter {blockSize} cannot be less than or equal to {headerSize}, since {headerSize} is contained within the block.");
         if(blockSize < 128)
-            return ArgumentException("BlockStorage parameter {blockSize} cannot be less than 128 bytes."); 
+            throw new ArgumentException("BlockStorage parameter {blockSize} cannot be less than 128 bytes."); 
 
         this.blockSize = blockSize;
         this.unitOfWork = (blockSize >= 4096) ? 4096 : 128;
@@ -39,17 +39,16 @@ public class BlockStorage : IBlockStorage {
         if(blocks.TryGetValue(id, out Block block)) return block;
 
         // {blockId} is ordered, so we can find our position by scaling off {blockSize}
-        int position = blockId * blockSize;
+        int position = (int)(id * blockSize);
         // we are attempting to read a {blockSize} worth of data from stream, so if there is less than between position and end of stream, we will be hitting memory that is not ours
         if((position + blockSize) > this.stream.Length)
             return null; 
 
         // just grab the first "sector" of data to construct our new block
         byte[] firstSector = new byte[DiskSectorSize];
-        this.stream.position = position;
-        int readBytes = this.stream.Read(firstSector, 0, DiskSectorSize);
+        int readBytes = this.stream.Read(firstSector, position, DiskSectorSize);
 
-        Block block = new Block(this, id, firstSector, this.stream);
+        block = new Block(this, id, this.stream, firstSector);
         OnBlockInitialized(block);
 
         return block;
@@ -65,14 +64,14 @@ public class BlockStorage : IBlockStorage {
         this.stream.SetLength((long)((id * blockSize) + blockSize));
         this.stream.Flush();
 
-        var block = new Block(this, id, new byte[DiskSectorSize], this.stream);
+        var block = new Block(this, id, this.stream, new byte[DiskSectorSize]);
 
         OnBlockInitialized(block);
         return block;
     }
 
-    private OnBlockInitialized(Block block) {
-        blocks[id] = block;
+    private void OnBlockInitialized(Block block) {
+        blocks[block.Id] = block;
 
         block.Disposed += HandleBlockDisposed;
     }

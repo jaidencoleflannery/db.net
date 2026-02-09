@@ -12,7 +12,7 @@ public class Block : IBlock {
 	private readonly BlockStorage storage;
 	private readonly byte[] firstSector;
 
-	private bool isDisposed = false;
+	public bool isDisposed { get; private set; } = false;
 	private bool isFirstSectorDirty = false;
 
 	public event EventHandler disposed;

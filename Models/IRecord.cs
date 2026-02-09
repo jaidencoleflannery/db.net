@@ -1,31 +1,31 @@
-using db.net.Block;
+using db.net.BlockStorage;
 
-namespace db.net.Record;
+namespace db.net.RecordStorage;
 
-class Record : IRecord {
-    
-    public Block block { get; private set; }
-    public Block next { get; private set; }
-    public Block prev { get; private set; }
+interface IRecord {
+    /// <summary>
+        /// retrieve block
+    /// </summary>
+    IBlock block { get; }
 
-    public Record(Block node) {
-        if(Block == null) 
-            throw new ArgumentException("Block cannot be null.");
-        this.block = node;    
-    }
+    /// <summary>
+        /// retrieve next record
+    /// </summary>
+    IBlock next { get; }
 
-    public void AppendBlock(Block node) {
-        if(Block.next != null) 
-            throw new ArgumentException($"nameof({node}).next is already linked. Use .Break() to clear forwards.");
-        else
-            this.block.next = node;
-    }
+    /// <summary>
+        /// retrieve size of block header
+    /// </summary>
+    IBlock prev { get; }
 
-    public void PushBlock(Block node) {
-        if(Block.prev != null) 
-            throw new ArgumentException($"nameof({node}).next is already linked. Use .Relink() to free the current block from it's parents.");
-        else
-            this.block.prev = node;
-    }
+    /// <summary>
+        /// set next node in linked list
+    /// </summary>
+    void Append(IBlock node);
+
+    /// <summary>
+        /// unlink next block to break the linked list
+    /// </summary>
+    void Break();
 
 }
