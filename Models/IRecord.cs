@@ -14,11 +14,6 @@ interface IRecord {
     IBlock next { get; }
 
     /// <summary>
-        /// retrieve size of block header
-    /// </summary>
-    IBlock prev { get; }
-
-    /// <summary>
         /// set next node in linked list
     /// </summary>
     void Append(IBlock node);

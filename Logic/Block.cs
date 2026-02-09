@@ -15,7 +15,7 @@ public class Block : IBlock {
 	public bool isDisposed { get; private set; } = false;
 	private bool isFirstSectorDirty = false;
 
-	public event EventHandler disposed;
+	public event EventHandler Disposed;
 
 	public Block(BlockStorage storage, uint id, Stream stream, byte[] firstSector) {
 		if(stream == null) 
@@ -73,7 +73,9 @@ public class Block : IBlock {
 	}
 
 	public void Dispose() {
-		Dispose();
+		if (isDisposed) return;
+		isDisposed = true;
+		Disposed?.Invoke(this, EventArgs.Empty);
 		GC.SuppressFinalize(this);
 	}
 

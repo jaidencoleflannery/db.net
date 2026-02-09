@@ -31,6 +31,6 @@ public interface IBlockStorage {
     /// <returns>
         /// returns the generated Block object
     /// </returns>
-    IBlock CreateNew();
+    IBlock Create();
 
 }

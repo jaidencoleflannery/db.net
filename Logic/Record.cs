@@ -5,8 +5,7 @@ namespace db.net.RecordStorage;
 class Record : IRecord {
     
     public IBlock block { get; private set; }
-    public IBlock? next { get; private set; }
-    public IBlock? prev { get; private set; }
+    public IBlock? next { get; private set; } = null;
 
     public Record(Block node) {
         if(node == null) 

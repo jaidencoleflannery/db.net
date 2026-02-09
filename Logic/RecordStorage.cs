@@ -13,7 +13,7 @@ public class RecordStorage : IRecordStorage {
     public void Delete(uint id) {
     }
 
-    uint Create(Func<uint, byte[]> generate) {
+    public uint Create(Func<uint, byte[]> generate) {
     }
 
 }

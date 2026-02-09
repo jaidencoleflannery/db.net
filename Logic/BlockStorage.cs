@@ -9,14 +9,14 @@ public class BlockStorage : IBlockStorage {
     readonly Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
     readonly Stream stream;
     readonly int blockSize;
-    readonly int headerSize;
+    readonly long headerSize;
     readonly int contentSize;
     readonly int unitOfWork; 
 
     public int DiskSectorSize => unitOfWork;
     public int BlockSize => blockSize; 
     public int ContentSize => contentSize;
-    public int HeaderSize => headerSize;
+    public long HeaderSize => headerSize;
 
     public BlockStorage(Stream stream, int blockSize = 4096, int headerSize = 48) {
         if(stream == null)
@@ -72,15 +72,13 @@ public class BlockStorage : IBlockStorage {
 
     private void OnBlockInitialized(Block block) {
         blocks[block.Id] = block;
-
         block.Disposed += HandleBlockDisposed;
     }
 
-    protected virtual void HandleBlockDisposed (object sender, EventArgs e)
-	{
-		var block = (Block)sender;
-		block.Disposed -= HandleBlockDisposed;
-
-		blocks.Remove (block.Id);
-	}
+    protected virtual void HandleBlockDisposed(object? sender, EventArgs e)
+    {
+        if (sender is not Block block) return;
+        block.Disposed -= HandleBlockDisposed;
+        blocks.Remove(block.Id);
+    }
 }
