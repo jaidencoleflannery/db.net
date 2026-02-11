@@ -29,12 +29,4 @@ public interface IRecordStorage {
     /// </returns>
     uint Create(Func<uint, byte[]> generate);
 
-    /// <summary>
-        /// create a record with a built in data generator for extending the record instance
-    /// </summary>
-    /// <returns>
-        /// returns the generated id (based on the first unique identifier of leading block)
-    /// </returns>
-    uint Create(Func<uint, byte[]> generate);
-
 }

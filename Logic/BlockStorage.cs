@@ -55,9 +55,8 @@ public class BlockStorage : IBlockStorage {
     }
 
     public IBlock Create() {
-        if((this.stream.Length % blockSize) != 0) {
+        if((this.stream.Length % blockSize) != 0)
             throw new DataMisalignedException($"Unexpected length, stream is misaligned: {this.stream.Length}");
-        }
 
         var id = (uint)Math.Ceiling((double)this.stream.Length / (double)this.blockSize);
 

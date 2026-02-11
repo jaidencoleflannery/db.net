@@ -13,7 +13,9 @@ public class RecordStorage : IRecordStorage {
     public void Delete(uint id) {
     }
 
-    public uint Create(Func<uint, byte[]> generate) {
+    // attempt to pull record, if it doesnt exist, create it?
+    public uint Create(Func<uint, byte[]> generator) {
+        return generator(uint);
     }
 
 }
