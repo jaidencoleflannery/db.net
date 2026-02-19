@@ -20,14 +20,14 @@ public struct BlockHeader {
 	}
 
 	// write given header to a buffer
-	public void Write(byte[] buffer, BlockHeader header) {
+	public void ToBuffer(byte[] buffer) {
 		if(!ValidateBuffer(buffer))
 			throw new ArgumentException("Buffer too small, each header is 12 bytes in size.");
 		try {
 			// uint == 4 bytes
-			BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(), header.Id);
-			BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(4), header.NextBlockId);
-			BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(8), header.UsedLength);
+			BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(), this.Id);
+			BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(4), this.NextBlockId);
+			BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(8), this.UsedLength);
 		} catch(Exception e) {
 			Console.WriteLine(e);
 			throw;
@@ -35,15 +35,15 @@ public struct BlockHeader {
 	}
 
 	// read a header from buffer and return it's BlockHeader version
-	public static BlockHeader Read(byte[] buffer, int offset) {
+	public static BlockHeader ToHeader(byte[] buffer) {
 		if(!ValidateBuffer(buffer))
 			throw new ArgumentException("Buffer too small, each header is 12 bytes in size.");
 		try {
 			// uint == 4 bytes
 			var header = new BlockHeader() {
-				Id = (uint)BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(offset)),
-				NextBlockId = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(offset + 4)),
-				UsedLength = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(offset + 8))
+				Id = (uint)BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan()),
+				NextBlockId = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(4)),
+				UsedLength = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(8))
 			};
 			return header;
 		} catch(Exception e) {

@@ -4,10 +4,15 @@ using System.Buffers.Binary;
 
 namespace db.net.Blocks;
 
+/*
+	Block is the model for a single 4kb section of space which we store our data into.
+	For context, Block is utilized by Record, which creates a string of Blocks as a Linked List so that more than 4kb can be stored per item.
+*/
+
 public class Block : IBlock {
 	public uint Id { get; private set; }
 	private readonly Stream stream;
-	private readonly long[] headers = new long[8];
+	private readonly BlockHeader[] headers = new BlockHeader[8];
 	private readonly BlockService service;
 	private readonly byte[] firstSector;
 
@@ -28,40 +33,44 @@ public class Block : IBlock {
 		this.firstSector = firstSector;
 	}
 
-	public long GetHeader(int id) {
+	public BlockHeader GetHeader(int id) {
 		if(id <= 0)
 			throw new ArgumentException(nameof(id));
 		if(stream == null)
 			throw new ArgumentNullException(nameof(stream));
 	
-		// each header is a long type, which is 8 bytes of data 
-		int position = (id * 8);
-		byte[] buffer = new byte[8];
+		// find in memory position (index of id * the size of each header)
+		int position = id * service.HeaderSize;
+		// buffer for storing header
+		byte[] buffer = new byte[service.HeaderSize];
 
-		this.stream.ReadExactly(buffer, 0, position);
-		return BinaryPrimitives.ReadInt64LittleEndian(buffer);
+		// from the index of the id, read a full blockheader's worth of bytes into the buffer, and then convert it into a BlockHeader object
+		this.stream.ReadExactly(buffer, position, service.HeaderSize);
+		return BlockHeader.ToHeader(buffer);
 	}
 
 	public void SetHeader(uint id, BlockHeader header) {
-		// each header is a long type, which is 8 bytes of data
-		int position = (int)id * 8;
+		// each header is 3 uint fields, which is 12 bytes of data
+		int position = (int)id * 12;
+		byte[] buffer = new byte[service.HeaderSize];
 
-		// write the header to a buffer
-		byte[] buffer = BlockHeader.Write(position, header);
-
-		// write header to stream
-		this.stream.Write(buffer, position, 8); // header size == 8 bytes
+		// write the header to a buffer and push it to the stream
+		header.ToBuffer(buffer);
+		this.stream.Write(buffer, position, service.HeaderSize); // header size == 12 bytes
 	}
 
-	public void Read(byte[] buffer, int offset, int headerOffset, uint count) {
+	public void Read(byte[] buffer, int offset, int count) {
 		if(isDisposed) 
             throw new ObjectDisposedException("Block");
-		if((count + headerOffset) > service.ContentSize) 
-            throw new ArgumentOutOfRangeException("Index (count + srcOffset) location exceeds bounds of block content.");
-		if((service.ContentSize - (count + headerOffset)) > buffer.Length) 
-            throw new ArgumentOutOfRangeException("Target byte array not large enough to fit contents.");
-
-		this.stream.ReadExactly(buffer, offset + headerOffset, (int)count);
+		if((count + service.HeaderSize) > service.ContentSize) 
+            throw new ArgumentOutOfRangeException($"Index ({nameof(count)} + {nameof(offset)}) location exceeds bounds of block content.");
+		if((service.ContentSize - (count + service.HeaderSize)) > buffer.Length) 
+            throw new ArgumentOutOfRangeException("Target buffer not large enough to fit contents.");
+		long blockStart = (long)Id * service.BlockSize;
+		// reset the stream position to the beginning of this block
+		this.stream.Seek(blockStart + service.HeaderSize, SeekOrigin.Begin);
+		// read from block, starting at provided offset
+		this.stream.ReadExactly(buffer, offset, count);
 	}
 
 	public void Write(byte[] buffer, int offset, int headerOffset, int count) {

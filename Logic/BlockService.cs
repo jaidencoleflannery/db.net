@@ -8,16 +8,16 @@ public class BlockService : IBlockService {
     readonly Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
     readonly Stream stream;
     readonly int blockSize;
-    readonly long headerSize;
+    readonly int headerSize;
     readonly int contentSize;
     readonly int unitOfWork; 
 
     public int DiskSectorSize => unitOfWork;
     public int BlockSize => blockSize; 
     public int ContentSize => contentSize;
-    public long HeaderSize => headerSize;
+    public int HeaderSize => headerSize;
 
-    public BlockService(Stream stream, int blockSize = 4096, int headerSize = 48) {
+    public BlockService(Stream stream, int blockSize = 4096, int headerSize = BlockHeader.Size) {
         if(stream == null)
             throw new ArgumentException($"Parameter {nameof(stream)} is null.");
         if(blockSize <= headerSize)
