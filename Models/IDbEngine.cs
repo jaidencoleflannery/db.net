@@ -6,7 +6,7 @@ public interface IDbEngine {
 
     void Post(byte[] data);
 
-    void Put(byte[] data);
+    void Update(uint id, byte[] data);
 
     void Delete(uint id);
 }

@@ -53,17 +53,14 @@ public class DbEngine : IDbEngine, IDisposable {
     public byte[] Get(uint id) =>
         _recordService.Find(id);
 
-    public void Post(byte[] data) {
-        // TODO
-    }
+    public void Post(byte[] data) =>
+        _recordService.Create(data);
 
-    public void Put(byte[] data) {
-        // TODO
-    }
+    public void Update(uint id, byte[] data) =>
+        _recordService.Update(id, data);
 
-    public void Delete(uint id) {
-        // TODO
-    }
+    public void Delete(uint id) =>
+        _recordService.Delete(id);
 
     public void Dispose() {
         _storeStream?.Dispose();

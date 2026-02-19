@@ -18,12 +18,17 @@ public class RecordService : IRecordService {
         return new byte[] {};
     }
 
+    public uint Create(byte[] data) {
+        records.Add(new Record(_blockService.Create()));
+    }
+
     public void Update(uint id, byte[] data) {
     }
 
     public void Delete(uint id) {
     }
 
+<<<<<<< Updated upstream
     public uint Create(byte[] data) {
         if(!records.Add(new Record(_blockService.Create())))
             throw new Exception("Unable to create record.");
@@ -32,4 +37,6 @@ public class RecordService : IRecordService {
         }
     }
 
+=======
+>>>>>>> Stashed changes
 }
