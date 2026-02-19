@@ -25,7 +25,11 @@ public class RecordService : IRecordService {
     }
 
     public uint Create(byte[] data) {
-        return 1;
+        if(!records.Add(new Record(_blockService.Create())))
+            throw new Exception("Unable to create record.");
+        int cursor = 0;
+        while(cursor < data.Length) {
+        }
     }
 
 }

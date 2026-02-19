@@ -7,7 +7,7 @@ public class Record : IRecord {
     public IBlock block { get; private set; }
     public IBlock? next { get; private set; } = null;
 
-    public Record(Block node) {
+    public Record(IBlock node) {
         if(node == null) 
             throw new ArgumentException("Initialization block cannot be null.");
         this.block = node;    
