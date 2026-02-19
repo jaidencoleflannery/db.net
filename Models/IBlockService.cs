@@ -1,6 +1,4 @@
-using db.net.BlockService;
-
-namespace db.net.BlockService;
+namespace db.net.Blocks;
 
 public interface IBlockService {
 

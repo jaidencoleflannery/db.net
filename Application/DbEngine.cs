@@ -1,13 +1,16 @@
 using System.IO;
 using System.Threading.Tasks.Dataflow;
-using db.net.RecordService;
+using db.net.Blocks;
+using db.net.Records;
 
 namespace db.net.Application;
 
-public class DbEngine : IDbEngine {
+public class DbEngine : IDbEngine, IDisposable {
 
     private readonly string _storePath;
+    private readonly FileStream _storeStream;
     private readonly string _treePath; // this is where we will store our hashes for our lookup tree
+    private readonly FileStream _treeStream;
 
     public DbEngine(string storePath, string treePath = "") {
         if(storePath == null || string.IsNullOrEmpty(storePath.Trim()))
@@ -24,13 +27,14 @@ public class DbEngine : IDbEngine {
 
         // create file(s)
         try{
-            using var storeStream = new FileStream(
+            // make sure to dispose these on shutdown
+            _storeStream = new FileStream(
                 this._storePath,
                 FileMode.OpenOrCreate,
                 FileAccess.Read,
                 FileShare.Read
             );
-            using var treeStream = new FileStream(
+            _treeStream = new FileStream(
                 this._treePath,
                 FileMode.OpenOrCreate,
                 FileAccess.Read,
@@ -42,11 +46,29 @@ public class DbEngine : IDbEngine {
         }
 
         // spin up singleton for managing records
-        var recordService = new RecordService();
+        var recordService = new RecordService(new BlockService(_storeStream));
     }
 
-    public Stream Get() {
+    byte[] Get(uint id) {
+        // TODO
+        return new byte[] {};
+    }
 
+    void Post(byte[] data) {
+        // TODO
+    }
+
+    void Put(byte[] data) {
+        // TODO
+    }
+
+    void Delete(uint id) {
+        // TODO
+    }
+
+    public void Dispose() {
+        _storeStream?.Dispose();
+        _treeStream?.Dispose();
     }
 
 }

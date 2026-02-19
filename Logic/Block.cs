@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
 
-namespace db.net.BlockService;
+namespace db.net.Blocks;
 
 public class Block : IBlock {
 	public uint Id { get; private set; }

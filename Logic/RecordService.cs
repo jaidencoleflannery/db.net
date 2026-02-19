@@ -1,8 +1,16 @@
-namespace db.net.RecordService;
+using db.net.Blocks;
+
+namespace db.net.Records;
 
 public class RecordService : IRecordService {
 
-    new HashSet<BlockService>
+    private BlockService _blockService;
+    public RecordService(BlockService blockService) {
+        this._blockService = blockService;
+    }
+
+    // each hashed record is the head link in the chain of that item.
+    public HashSet<Record> records = new();
 
     public uint Id { get; private set; }
 
@@ -16,8 +24,8 @@ public class RecordService : IRecordService {
     public void Delete(uint id) {
     }
 
-    // generator should be a function that takes the data and turns it into a byte[] for storage
-    public uint Create(Func<uint, byte[]> generator) {
+    public uint Create(byte[] data) {
+        var record = new Record();
         return 1;
     }
 

@@ -1,8 +1,8 @@
-using db.net.BlockService;
+using db.net.Blocks;
 
-namespace db.net.RecordService;
+namespace db.net.Records;
 
-class Record : IRecord {
+public class Record : IRecord {
     
     public IBlock block { get; private set; }
     public IBlock? next { get; private set; } = null;

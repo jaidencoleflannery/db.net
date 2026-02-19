@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("db.net")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a75e4a1e500ee9e81d2af886a0dfe9c210968f7d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+666d3f85bca51f0f12bececabcc509b9418d4bf1")]
 [assembly: System.Reflection.AssemblyProductAttribute("db.net")]
 [assembly: System.Reflection.AssemblyTitleAttribute("db.net")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

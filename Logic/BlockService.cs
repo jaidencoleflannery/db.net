@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace db.net.BlockService;
+namespace db.net.Blocks;
 
-// blockstorage is basically a service for block which implements the api for functionality.
 public class BlockService : IBlockService {
     readonly Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
     readonly Stream stream;

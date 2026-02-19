@@ -4,9 +4,9 @@ public interface IDbEngine {
 
     Stream Get(uint id);
 
-    void Post(Stream value);
+    void Post(byte[] data);
 
-    void Put(Stream value);
+    void Put(byte[] data);
 
     void Delete(uint id);
 }

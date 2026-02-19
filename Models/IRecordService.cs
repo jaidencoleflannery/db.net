@@ -1,4 +1,4 @@
-namespace db.net.RecordService;
+namespace db.net.Records;
 
 public interface IRecordService {
     /// <summary>
@@ -27,6 +27,6 @@ public interface IRecordService {
     /// <returns>
         /// returns the generated id (based on the first unique identifier of leading block)
     /// </returns>
-    uint Create(Func<uint, byte[]> generate);
+    uint Create(byte[] data);
 
 }
