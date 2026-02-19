@@ -2,14 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
 
-namespace db.net.BlockStorage;
+namespace db.net.BlockService;
 
-// Block is just the core mechanics of a block of memory.
 public class Block : IBlock {
 	public uint Id { get; private set; }
 	private readonly Stream stream;
-	private readonly long[] headers = new long[5];
-	private readonly BlockStorage storage;
+	private readonly long[] headers = new long[8];
+	private readonly BlockService service;
 	private readonly byte[] firstSector;
 
 	public bool isDisposed { get; private set; } = false;
@@ -17,13 +16,13 @@ public class Block : IBlock {
 
 	public event EventHandler Disposed;
 
-	public Block(BlockStorage storage, uint id, Stream stream, byte[] firstSector) {
+	public Block(BlockService service, uint id, Stream stream, byte[] firstSector) {
 		if(stream == null) 
 			throw new ArgumentNullException(nameof(stream));
-		if(firstSector.Length != storage.DiskSectorSize)
-			throw new ArgumentException($"firstSector must be of length {storage.DiskSectorSize}"); 
+		if(firstSector.Length != service.DiskSectorSize)
+			throw new ArgumentException($"firstSector must be of length {service.DiskSectorSize}"); 
 
-		this.storage = storage;
+		this.service = service;
 		this.Id = id;
 		this.stream = stream;
 		this.firstSector = firstSector;
@@ -55,9 +54,9 @@ public class Block : IBlock {
 	public void Read(byte[] buffer, int offset, int headerOffset, uint count) {
 		if(isDisposed) 
             throw new ObjectDisposedException("Block");
-		if((count + headerOffset) > storage.ContentSize) 
+		if((count + headerOffset) > service.ContentSize) 
             throw new ArgumentOutOfRangeException("Index (count + srcOffset) location exceeds bounds of block content.");
-		if((storage.ContentSize - (count + headerOffset)) > buffer.Length) 
+		if((service.ContentSize - (count + headerOffset)) > buffer.Length) 
             throw new ArgumentOutOfRangeException("Target byte array not large enough to fit contents.");
 
 		this.stream.ReadExactly(buffer, offset + headerOffset, (int)count);
@@ -66,7 +65,7 @@ public class Block : IBlock {
 	public void Write(byte[] buffer, int offset, int headerOffset, int count) {
 		if(isDisposed) 
             throw new ObjectDisposedException("Block");
-		if((count + headerOffset + offset) > storage.ContentSize) 
+		if((count + headerOffset + offset) > service.ContentSize) 
             throw new ArgumentOutOfRangeException("Size of contents (count + offset) exceeds bounds of block content.");
 
 		this.stream.Write(buffer, offset + headerOffset, count);

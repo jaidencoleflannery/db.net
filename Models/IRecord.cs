@@ -1,6 +1,6 @@
-using db.net.BlockStorage;
+using db.net.BlockService;
 
-namespace db.net.RecordStorage;
+namespace db.net.RecordService;
 
 interface IRecord {
     /// <summary>

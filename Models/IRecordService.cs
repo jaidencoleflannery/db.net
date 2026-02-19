@@ -1,6 +1,6 @@
-namespace db.net.RecordStorage;
+namespace db.net.RecordService;
 
-public interface IRecordStorage {
+public interface IRecordService {
     /// <summary>
         /// get the record's first block's unique identifier
     /// </summary>

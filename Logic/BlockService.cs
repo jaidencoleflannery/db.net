@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace db.net.BlockStorage;
+namespace db.net.BlockService;
 
 // blockstorage is basically a service for block which implements the api for functionality.
-public class BlockStorage : IBlockStorage {
+public class BlockService : IBlockService {
     readonly Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
     readonly Stream stream;
     readonly int blockSize;
@@ -18,13 +18,13 @@ public class BlockStorage : IBlockStorage {
     public int ContentSize => contentSize;
     public long HeaderSize => headerSize;
 
-    public BlockStorage(Stream stream, int blockSize = 4096, int headerSize = 48) {
+    public BlockService(Stream stream, int blockSize = 4096, int headerSize = 48) {
         if(stream == null)
-            throw new ArgumentException("BlockStorage parameter {stream} is null.");
+            throw new ArgumentException($"Parameter {nameof(stream)} is null.");
         if(blockSize <= headerSize)
-            throw new ArgumentException("BlockStorage parameter {blockSize} cannot be less than or equal to {headerSize}, since {headerSize} is contained within the block.");
+            throw new ArgumentException($"Parameter {nameof(blockSize)} cannot be less than or equal to {nameof(headerSize)}, since {nameof(headerSize)} is contained within the block.");
         if(blockSize < 128)
-            throw new ArgumentException("BlockStorage parameter {blockSize} cannot be less than 128 bytes."); 
+            throw new ArgumentException($"Parameter {nameof(blockSize)} cannot be less than 128 bytes."); 
 
         this.blockSize = blockSize;
         this.unitOfWork = (blockSize >= 4096) ? 4096 : 128;

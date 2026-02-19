@@ -1,6 +1,8 @@
-namespace db.net.BlockStorage;
+using db.net.BlockService;
 
-public interface IBlockStorage {
+namespace db.net.BlockService;
+
+public interface IBlockService {
 
     /// <summary>
         /// retrieve total size of block

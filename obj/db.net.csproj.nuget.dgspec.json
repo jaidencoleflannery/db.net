@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/coleflannery/Documents/projects/db.net/db.net.csproj": {}
+    "/Users/owenmilgram/Documents/personal/projects/db.net/db.net.csproj": {}
   },
   "projects": {
-    "/Users/coleflannery/Documents/projects/db.net/db.net.csproj": {
+    "/Users/owenmilgram/Documents/personal/projects/db.net/db.net.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/coleflannery/Documents/projects/db.net/db.net.csproj",
+        "projectUniqueName": "/Users/owenmilgram/Documents/personal/projects/db.net/db.net.csproj",
         "projectName": "db.net",
-        "projectPath": "/Users/coleflannery/Documents/projects/db.net/db.net.csproj",
-        "packagesPath": "/Users/coleflannery/.nuget/packages/",
-        "outputPath": "/Users/coleflannery/Documents/projects/db.net/obj/",
+        "projectPath": "/Users/owenmilgram/Documents/personal/projects/db.net/db.net.csproj",
+        "packagesPath": "/Users/owenmilgram/.nuget/packages/",
+        "outputPath": "/Users/owenmilgram/Documents/personal/projects/db.net/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/coleflannery/.nuget/NuGet/NuGet.Config"
+          "/Users/owenmilgram/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -59,7 +59,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -1,5 +1,5 @@
 public class Generator {
-    public static generate() {
+    public static void generate() {
         
     }
 }
