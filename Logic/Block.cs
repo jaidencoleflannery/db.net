@@ -42,12 +42,14 @@ public class Block : IBlock {
 		return BinaryPrimitives.ReadInt64LittleEndian(buffer);
 	}
 
-	public void SetHeader(uint id, long value) {
+	public void SetHeader(uint id, BlockHeader header) {
 		// each header is a long type, which is 8 bytes of data
 		int position = (int)id * 8;
-		byte[] buffer = new byte[8]; 
 
-		BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
+		// write the header to a buffer
+		byte[] buffer = BlockHeader.Write(position, header);
+
+		// write header to stream
 		this.stream.Write(buffer, position, 8); // header size == 8 bytes
 	}
 
