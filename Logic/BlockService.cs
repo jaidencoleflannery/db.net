@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Buffers.Binary;
 
 namespace db.net.Blocks;
 
@@ -12,12 +13,12 @@ public class BlockService : IBlockService {
     readonly int contentSize;
     readonly int unitOfWork; 
 
-    public int DiskSectorSize => unitOfWork;
+    public int UnitOfWork => unitOfWork;
     public int BlockSize => blockSize; 
     public int ContentSize => contentSize;
     public int HeaderSize => headerSize;
 
-    public BlockService(Stream stream, int blockSize = 4096, int headerSize = BlockHeader.Size) {
+    public BlockService(Stream stream, int blockSize = Block.Size, int headerSize = BlockHeader.Size) {
         if(stream == null)
             throw new ArgumentException($"Parameter {nameof(stream)} is null.");
         if(blockSize <= headerSize)
@@ -44,8 +45,8 @@ public class BlockService : IBlockService {
             return null; 
 
         // just grab the first "sector" of data to construct our new block
-        byte[] firstSector = new byte[DiskSectorSize];
-        int readBytes = this.stream.Read(firstSector, position, DiskSectorSize);
+        byte[] firstSector = new byte[UnitOfWork];
+        int readBytes = this.stream.Read(firstSector, position, UnitOfWork);
 
         block = new Block(this, id, this.stream, firstSector);
         OnBlockInitialized(block);
@@ -53,7 +54,7 @@ public class BlockService : IBlockService {
         return block;
     }
 
-    public IBlock Create() {
+    public IBlock Create(byte[]? data) {
         if((this.stream.Length % blockSize) != 0)
             throw new DataMisalignedException($"Unexpected length, stream is misaligned: {this.stream.Length}");
 
@@ -62,10 +63,32 @@ public class BlockService : IBlockService {
         this.stream.SetLength((long)((id * blockSize) + blockSize));
         this.stream.Flush();
 
-        var block = new Block(this, id, this.stream, new byte[DiskSectorSize]);
+        Block block;
+
+        // if data was provided, build structure and store blocks
+        if(data != null) {
+            List<byte[]> sections = Partition(data);
+            block = new Block(this, id, this.stream, sections[0]);
+        } else {
+            block = new Block(this, id, this.stream, new byte[UnitOfWork]);
+        }
 
         OnBlockInitialized(block);
         return block;
+    }
+
+    // section data into a list of (4kb - headersize) sections
+    public List<byte[]> Partition(byte[] data) {
+        var sections = new List<byte[]>();
+        int offset = 0;
+        while(offset < data.Length) {
+            int size = Math.Min(ContentSize, (data.Length - offset));
+            var chunk = new byte[ContentSize];
+            Buffer.BlockCopy(data, offset, chunk, 0, size);
+            sections.Add(chunk);
+            offset += size;
+        }
+        return sections;
     }
 
     private void OnBlockInitialized(Block block) {

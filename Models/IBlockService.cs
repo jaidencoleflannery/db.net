@@ -10,7 +10,7 @@ public interface IBlockService {
     /// <summary>
         /// retrieve size of block header
     /// </summary>
-    long HeaderSize { get; }
+    int HeaderSize { get; }
 
     /// <summary>
         /// retrieve size of block's contents

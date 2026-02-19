@@ -12,20 +12,18 @@ namespace db.net.Blocks;
 public class Block : IBlock {
 	public uint Id { get; private set; }
 	private readonly Stream stream;
-	private readonly BlockHeader[] headers = new BlockHeader[8];
+	private readonly BlockHeader[] headers = new BlockHeader[8]; // 12b * 8 = 96b
+	public const int Size = 4096; // 4096b == 4kb
 	private readonly BlockService service;
 	private readonly byte[] firstSector;
-
-	public bool isDisposed { get; private set; } = false;
 	private bool isFirstSectorDirty = false;
+	public bool isDisposed { get; private set; } = false;
 
 	public event EventHandler Disposed;
 
 	public Block(BlockService service, uint id, Stream stream, byte[] firstSector) {
 		if(stream == null) 
 			throw new ArgumentNullException(nameof(stream));
-		if(firstSector.Length != service.DiskSectorSize)
-			throw new ArgumentException($"firstSector must be of length {service.DiskSectorSize}"); 
 
 		this.service = service;
 		this.Id = id;
@@ -59,16 +57,16 @@ public class Block : IBlock {
 		this.stream.Write(buffer, position, service.HeaderSize); // header size == 12 bytes
 	}
 
-	public void Read(byte[] buffer, int offset, int count) {
+	public void Read(byte[] buffer, int offset, int headerOffset, int count) {
 		if(isDisposed) 
             throw new ObjectDisposedException("Block");
-		if((count + service.HeaderSize) > service.ContentSize) 
+		if((count + headerOffset) > service.ContentSize) 
             throw new ArgumentOutOfRangeException($"Index ({nameof(count)} + {nameof(offset)}) location exceeds bounds of block content.");
-		if((service.ContentSize - (count + service.HeaderSize)) > buffer.Length) 
+		if((service.ContentSize - (count + headerOffset)) > buffer.Length) 
             throw new ArgumentOutOfRangeException("Target buffer not large enough to fit contents.");
 		long blockStart = (long)Id * service.BlockSize;
 		// reset the stream position to the beginning of this block
-		this.stream.Seek(blockStart + service.HeaderSize, SeekOrigin.Begin);
+		this.stream.Seek(blockStart + headerOffset, SeekOrigin.Begin);
 		// read from block, starting at provided offset
 		this.stream.ReadExactly(buffer, offset, count);
 	}
