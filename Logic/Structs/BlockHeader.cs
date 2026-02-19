@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 namespace db.net.Blocks;
 
 public readonly struct BlockHeader {
-	public const uint Size = 12; // 3 * uint
+	public const int Size = 12; // 3 * uint
 	public uint Id { get; }
 	public uint NextBlockId { get; } // 0 = no next block
 	public uint UsedLength { get; }
@@ -15,7 +15,7 @@ public readonly struct BlockHeader {
 	}
 
 	public static void Write(byte[] buffer, int offset, BlockHeader header) {
-		
+		validateBuffer(buffer, offset);
 		try {
 			BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(offset), header.Id);
 			BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(offset + 4), header.NextBlockId);
@@ -35,6 +35,14 @@ public readonly struct BlockHeader {
 			Console.WriteLine(e);
 		}
 		return buffer;
+	}
+
+	public static void WriteToStream(Stream stream, uint blockId, int blockSize, BlockHeader header) {
+		int offset = (int)blockId * blockSize;
+		stream.Seek(offset, SeekOrigin.Begin);
+		byte[] buffer = new byte[Size];
+		Write(buffer, 0, header);
+		stream.Write(buffer, offset, Size);
 	}
 
 	public static void validateBuffer(byte[] buffer, int offset) {
