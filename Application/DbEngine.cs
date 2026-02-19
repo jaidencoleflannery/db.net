@@ -7,6 +7,7 @@ namespace db.net.Application;
 
 public class DbEngine : IDbEngine, IDisposable {
 
+    private readonly RecordService _recordService;
     private readonly string _storePath;
     private readonly FileStream _storeStream;
     private readonly string _treePath; // this is where we will store our hashes for our lookup tree
@@ -27,7 +28,7 @@ public class DbEngine : IDbEngine, IDisposable {
 
         // create file(s)
         try{
-            // make sure to dispose these on shutdown
+            // make sure to dispose these on shutdown - they last for the lifetime of our database
             _storeStream = new FileStream(
                 this._storePath,
                 FileMode.OpenOrCreate,
@@ -46,13 +47,11 @@ public class DbEngine : IDbEngine, IDisposable {
         }
 
         // spin up singleton for managing records
-        var recordService = new RecordService(new BlockService(_storeStream));
+        _recordService = new RecordService(new BlockService(_storeStream));
     }
 
-    public byte[] Get(uint id) {
-        // TODO
-        return new byte[] {};
-    }
+    public byte[] Get(uint id) =>
+        _recordService.Find(id);
 
     public void Post(byte[] data) {
         // TODO
