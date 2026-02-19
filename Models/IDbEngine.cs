@@ -2,7 +2,7 @@ namespace db.net.Application;
 
 public interface IDbEngine {
 
-    Stream Get(uint id);
+    byte[] Get(uint id);
 
     void Post(byte[] data);
 

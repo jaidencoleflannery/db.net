@@ -49,20 +49,20 @@ public class DbEngine : IDbEngine, IDisposable {
         var recordService = new RecordService(new BlockService(_storeStream));
     }
 
-    byte[] Get(uint id) {
+    public byte[] Get(uint id) {
         // TODO
         return new byte[] {};
     }
 
-    void Post(byte[] data) {
+    public void Post(byte[] data) {
         // TODO
     }
 
-    void Put(byte[] data) {
+    public void Put(byte[] data) {
         // TODO
     }
 
-    void Delete(uint id) {
+    public void Delete(uint id) {
         // TODO
     }
 

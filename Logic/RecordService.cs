@@ -25,7 +25,6 @@ public class RecordService : IRecordService {
     }
 
     public uint Create(byte[] data) {
-        var record = new Record();
         return 1;
     }
 
