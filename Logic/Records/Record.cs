@@ -10,7 +10,7 @@ public class Record : IRecord {
     public Record(IBlock node) {
         if(node == null) 
             throw new ArgumentException("Initialization block cannot be null.");
-        this.block = node;    
+        this.block = node;
     }
 
     public void Append(IBlock node) {

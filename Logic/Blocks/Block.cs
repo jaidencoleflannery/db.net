@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Buffers.Binary;
+using db.net.StorageConstants;
 
 namespace db.net.Blocks;
 
@@ -10,21 +11,25 @@ namespace db.net.Blocks;
 */
 
 public class Block : IBlock {
-	public uint Id { get; private set; }
 	private readonly Stream stream;
-	private readonly BlockHeader[] headers = new BlockHeader[8]; // 12b * 8 = 96b
-	public const int Size = 4096; // 4096b == 4kb
+	private readonly BlockHeader[] headers = new BlockHeader[Storage.MaxHeaders];
+	private int _headerCount = 0;
 	private readonly BlockService service;
 	private readonly byte[] firstSector;
 	private bool isFirstSectorDirty = false;
+
+	public uint Id { get; private set; }
+	public const int Size = Storage.BlockSize;
 	public bool isDisposed { get; private set; } = false;
 
 	public event EventHandler Disposed;
 
-	public Block(BlockService service, uint id, Stream stream, byte[] firstSector) {
+	public Block(BlockService service, uint id, Stream stream, byte[] firstSector, BlockHeader header) {
 		if(stream == null) 
 			throw new ArgumentNullException(nameof(stream));
 
+		headers[_headerCount] = header;
+		_headerCount++;
 		this.service = service;
 		this.Id = id;
 		this.stream = stream;
@@ -32,6 +37,11 @@ public class Block : IBlock {
 	}
 
 	public BlockHeader GetHeader(int id) {
+		foreach(var header in headers) {
+			if(header.Id == id) {
+				return header;
+			}
+		}
 		if(id <= 0)
 			throw new ArgumentException(nameof(id));
 		if(stream == null)

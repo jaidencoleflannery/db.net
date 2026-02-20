@@ -1,4 +1,5 @@
 using db.net.Blocks;
+using db.net.Data;
 
 namespace db.net.Records;
 
@@ -18,8 +19,13 @@ public class RecordService : IRecordService {
         return new byte[] {};
     }
 
-    public uint Create(byte[] data) {
-        records.Add(new Record(_blockService.Create()));
+    // TODO need to loop through our partitioned data and for each section, create the block, and then store the header in that block with the returned ID
+    public uint Create(byte[] data, int contentSize) {
+        List<byte[]> sections = DataService.Partition(data, contentSize);
+        foreach(var section in sections) {
+            var header = new BlockHeader();
+            records.Add(new Record(_blockService.Create(section, header)));
+        }
     }
 
     public void Update(uint id, byte[] data) {
@@ -28,15 +34,4 @@ public class RecordService : IRecordService {
     public void Delete(uint id) {
     }
 
-<<<<<<< Updated upstream
-    public uint Create(byte[] data) {
-        if(!records.Add(new Record(_blockService.Create())))
-            throw new Exception("Unable to create record.");
-        int cursor = 0;
-        while(cursor < data.Length) {
-        }
-    }
-
-=======
->>>>>>> Stashed changes
 }

@@ -31,6 +31,6 @@ public interface IBlockService {
     /// <returns>
         /// returns the generated Block object
     /// </returns>
-    IBlock Create();
+    IBlock Create(byte[]? data);
 
 }

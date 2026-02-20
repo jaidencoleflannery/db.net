@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using db.net.StorageConstants;
 
 namespace db.net.Blocks;
 
@@ -8,7 +9,7 @@ namespace db.net.Blocks;
 */
 
 public struct BlockHeader {
-	public const int Size = 12; // 3 * uint
+	public const int Size = Storage.HeaderSize; // 3 * uint
 	public uint Id { get; set; }
 	public uint NextBlockId { get; set; } // 0 = no next block
 	public uint UsedLength { get; set; }
