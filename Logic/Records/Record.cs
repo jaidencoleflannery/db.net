@@ -1,9 +1,12 @@
+using System.Collections;
 using db.net.Blocks;
 
 namespace db.net.Records;
 
-public class Record : IRecord, IEnumerable<Record> {
-    
+public class Record : IRecord, IEnumerable<IBlock> {
+
+    public uint Id { get; set; } // id should be the id of the first stored block in the chain
+
     private IBlock[] _blocks { get; set; }
     private int cursor { get; set; }
 
@@ -19,6 +22,8 @@ public class Record : IRecord, IEnumerable<Record> {
             throw new IndexOutOfRangeException("Record out of space."); 
         if(block == null)
             throw new ArgumentNullException("Block cannot be null.");
+        if(cursor == 0)
+            this.Id = block.Id;
         this._blocks[cursor] = block; 
         cursor++;
     }
@@ -27,4 +32,7 @@ public class Record : IRecord, IEnumerable<Record> {
         foreach (var block in _blocks)
             yield return block;
     }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
 }
