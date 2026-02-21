@@ -64,7 +64,7 @@ public class BlockService : IBlockService {
         // our blocks are indexed by position, so we can find the block by iterating through n blocks
         var id = (uint)Math.Ceiling((double)this.stream.Length / (double)this.blockSize);
 
-        // set our file to be 1 block longer than its current total length
+        // set our file to be 1 block longer than its current total length to make room
         this.stream.SetLength((long)((id * blockSize) + blockSize));
         // save everything in the stream and clear it
         this.stream.Flush();

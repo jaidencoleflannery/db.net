@@ -2,26 +2,29 @@ using db.net.Blocks;
 
 namespace db.net.Records;
 
-public class Record : IRecord {
+public class Record : IRecord, IEnumerable<Record> {
     
-    public IBlock block { get; private set; }
-    public IBlock? next { get; private set; } = null;
+    private IBlock[] _blocks { get; set; }
+    private int cursor { get; set; }
 
-    public Record(IBlock node) {
-        if(node == null) 
-            throw new ArgumentException("Initialization block cannot be null.");
-        this.block = node;
+    public Record(int numBlocks) {
+        if(numBlocks < 1)
+            throw new ArgumentException("Record size must be at least 1 block.");
+        this._blocks = new IBlock[numBlocks];
+        this.cursor = 0;
     }
 
-    public void Append(IBlock node) {
-        if(this.next != null) 
-            throw new ArgumentException($"{nameof(node)}.next is already linked. Use .Break() to clear forwards.");
-        else
-            this.next = node;
+    public void Append(IBlock block) { 
+        if(cursor == _blocks.Length)
+            throw new IndexOutOfRangeException("Record out of space."); 
+        if(block == null)
+            throw new ArgumentNullException("Block cannot be null.");
+        this._blocks[cursor] = block; 
+        cursor++;
     }
 
-    public void Break() {
-        this.next = null;
+    public IEnumerator<IBlock> GetEnumerator() {
+        foreach (var block in _blocks)
+            yield return block;
     }
-
 }
