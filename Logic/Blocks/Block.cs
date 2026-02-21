@@ -12,25 +12,30 @@ public class Block : IBlock {
 	private readonly BlockHeader[] headers = new BlockHeader[Storage.MaxHeaders];
 	private int _headerCount = 0;
 	private readonly BlockService service;
-	private readonly byte[] firstSector;
-	private bool isFirstSectorDirty = false;
 
-	public uint Id { get; private set; }
 	public const int Size = Storage.BlockSize;
 	public bool isDisposed { get; private set; } = false;
 
 	public event EventHandler Disposed;
 
-	public Block(BlockService service, uint id, Stream stream, byte[] firstSector, BlockHeader header) {
+	public Block(BlockService service, Stream stream, byte[] data, BlockHeader header) {
 		if(stream == null) 
 			throw new ArgumentNullException(nameof(stream));
 
 		headers[_headerCount] = header;
 		_headerCount++;
 		this.service = service;
-		this.Id = id;
 		this.stream = stream;
-		this.firstSector = firstSector;
+	}
+
+    public Block(BlockService service, Stream stream, Span<byte> data, BlockHeader header) {
+		if(stream == null) 
+			throw new ArgumentNullException(nameof(stream));
+
+		headers[_headerCount] = header;
+		_headerCount++;
+		this.service = service;
+		this.stream = stream;
 	}
 
 	public BlockHeader GetHeader(int id) {

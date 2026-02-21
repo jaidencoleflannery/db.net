@@ -1,11 +1,12 @@
-using System.Collections.Concurrent;
+using db.net.StorageConstants;
 
 namespace db.net.Data;
 
 public static class DataService {
 
-    // section data into a list of contentSize (blockSize - headerSize) sections
-    public static List<byte[]> Partition(byte[] data, int contentSize) {
+    // section data into a list of {contentSize} sections
+    public static List<byte[]> Partition(byte[] data) {
+        int contentSize = Storage.ContentSize;
         var sections = new List<byte[]>();
         int offset = 0;
         while(offset < data.Length) {

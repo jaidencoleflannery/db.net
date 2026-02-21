@@ -8,6 +8,8 @@ namespace db.net.Application;
 public class DbEngine : IDbEngine, IDisposable {
 
     private readonly RecordService _recordService;
+
+    // file paths
     private readonly string _storePath;
     private readonly FileStream _storeStream;
     private readonly string _treePath; // this is where we will store our hashes for our lookup tree
@@ -32,13 +34,13 @@ public class DbEngine : IDbEngine, IDisposable {
             _storeStream = new FileStream(
                 this._storePath,
                 FileMode.OpenOrCreate,
-                FileAccess.Read,
+                FileAccess.ReadWrite,
                 FileShare.Read
             );
             _treeStream = new FileStream(
                 this._treePath,
                 FileMode.OpenOrCreate,
-                FileAccess.Read,
+                FileAccess.ReadWrite,
                 FileShare.Read
             );
         } catch(Exception e) {
@@ -46,8 +48,8 @@ public class DbEngine : IDbEngine, IDisposable {
             throw;
         }
 
-        // spin up singleton for managing records
-        _recordService = new RecordService(new BlockService(_storeStream));
+        // spin up nested singletons for managing data
+        _recordService = RecordService.Initialize(BlockService.Initialize((_storeStream)));
     }
 
     public byte[] Get(uint id) =>

@@ -23,7 +23,8 @@ public class Record : IRecord, IEnumerable<IBlock> {
         if(block == null)
             throw new ArgumentNullException("Block cannot be null.");
         if(cursor == 0)
-            this.Id = block.Id;
+            this.Id = block.headersId;
+        headers
         this._blocks[cursor] = block; 
         cursor++;
     }

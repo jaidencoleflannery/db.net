@@ -1,14 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Buffers.Binary;
-using db.net.Data;
 using db.net.StorageConstants;
 
 namespace db.net.Blocks;
 
-public class BlockService : IBlockService {
-    readonly Dictionary<uint, Block> blocks = new Dictionary<uint, Block>();
+public sealed class BlockService : IBlockService {
+
+    public static BlockService Instance => _instance ?? throw new InvalidOperationException("BlockService is not initialized.");
+    private static Boolean _initialized = false;
+
+    private static BlockService? _instance;
+
+    readonly Dictionary<uint, IBlock> blocks = new Dictionary<uint, IBlock>();
     readonly Stream stream;
 
     readonly int blockSize = Storage.BlockSize;
@@ -21,7 +23,17 @@ public class BlockService : IBlockService {
     public int ContentSize => contentSize;
     public int HeaderSize => headerSize;
 
-    public BlockService(Stream stream) {
+    public static BlockService Initialize(Stream stream) {
+        if(stream == null)
+            throw new ArgumentNullException("Stream cannot be null.");
+        if(_instance != null)
+            throw new InvalidOperationException("BlockService has already been initialized.");
+        _initialized = true;
+        _instance = new BlockService(stream);
+        return _instance;
+    }
+
+    private BlockService(Stream stream) {
         if(stream == null)
             throw new ArgumentException($"Parameter {nameof(stream)} is null.");
         if(blockSize <= headerSize)
@@ -34,7 +46,7 @@ public class BlockService : IBlockService {
  
     public IBlock Find(uint id) {
         // we dynamically create each block as we find it - if we have found it before, just return it from our cache
-        if(blocks.TryGetValue(id, out Block block)) return block;
+        if(blocks.TryGetValue(id, out IBlock block)) return block;
 
         // {blockId} is ordered, so we can find our position by scaling off {blockSize}
         int position = (int)(id * blockSize);
@@ -43,11 +55,18 @@ public class BlockService : IBlockService {
             return null; 
 
         // just grab the first "sector" of data to construct our new block
-        byte[] firstSector = new byte[UnitOfWork];
-        int readBytes = this.stream.Read(firstSector, position, UnitOfWork);
+        byte[] buffer = new byte[UnitOfWork];
+        int readBytes = this.stream.Read(buffer, position, UnitOfWork);
 
         // add our block in memory and cache it for future use
-        block = new Block(this, id, this.stream, firstSector);
+        // get header values
+        uint nextBlockId = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(4, 4));
+        uint usedLength = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(4, 4));
+        var header = new BlockHeader(id, nextBlockId, usedLength);
+
+        // section out our content from the header
+        Span<byte> content = buffer.AsSpan(12);
+        block = new Block(this, this.stream, content, header);
         OnBlockInitialized(block);
         return block;
     }
@@ -58,31 +77,37 @@ public class BlockService : IBlockService {
             throw new DataMisalignedException($"Unexpected length, stream is misaligned: {this.stream.Length}");
 
         // this service is just spinning up the 4kb blocks of data - recordservice handles the actual data handling and partitioning
-        if(data.Length != contentSize)
-            throw new ArgumentException($"{nameof(data)}'s size is not the same as the expected content size.");
+        if(data.Length > contentSize)
+            throw new ArgumentException($"{nameof(data)}'s size is larger than the expected content size.");
 
-        // our blocks are indexed by position, so we can find the block by iterating through n blocks
-        var id = (uint)Math.Ceiling((double)this.stream.Length / (double)this.blockSize);
-
-        // set our file to be 1 block longer than its current total length to make room
-        this.stream.SetLength((long)((id * blockSize) + blockSize));
-        // save everything in the stream and clear it
-        this.stream.Flush();
+        // our blocks are indexed by position, so we can find the block by iterating through n blocks and assigning the length
+        // this id is the database location of the block
+        var id = (uint)Math.Ceiling((double)this.stream.Length / (double)this.blockSize); 
 
         // setup block header first
-        var header = new BlockHeader(id, 0, (uint)data.Length);
-        
-        // create our in memory block and cache it
-        Block block = new Block(this, id, this.stream, data, header);
+        // this id is the data's position within the block
+        var header = new BlockHeader(0, 0, (uint)data.Length); 
+        // create our in memory block, cache it, and save it to our file
+        Block block = new Block(this, id, this.stream, data, header); 
         OnBlockInitialized(block);
         return block;
     }
 
-    private void OnBlockInitialized(Block block) {
+    private void OnBlockInitialized(IBlock block) {
         // cache the block
         blocks[block.Id] = block;
         // subscribe to the dispose event
         block.Disposed += HandleBlockDisposed;
+        WriteBlock(block);
+    }
+
+    private void WriteBlock(IBlock block) {
+        // set our file to be 1 block longer than its current total length to make room
+        this.stream.SetLength((long)((block.Id * blockSize) + blockSize));
+        // save everything in the stream and clear it
+        this.stream.Flush();
+        // make sure the stream cursor is at the correct slot
+        this.stream.Seek(block.Id, SeekOrigin.Begin);
     }
 
     protected virtual void HandleBlockDisposed(object? sender, EventArgs e)
