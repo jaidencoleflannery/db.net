@@ -22,22 +22,21 @@ public class RecordService : IRecordService {
         return new byte[] {};
     }
 
-    // TODO need to loop through our partitioned data and for each section, create the block, and then store the header in that block with the returned ID
     public uint Create(byte[] data, int contentSize) {
-
         // partition our data into chunks that will fit inside each block
         List<byte[]> sections = DataService.Partition(data, contentSize);
-
-        // create record to fit our blocks 
-        var current = new Record(_blockService.Create(sections[0]));
-
-        // loop through remaining sections and append to the linked list (record) of blocks
-        for(int cursor= 1; cursor < sections.Count; cursor++) {  // make sure to add record to cache
-            var record = new Record(_blockService.Create(sections[cursor]));
-            current.Append(record);
-            records.Add(current);
-            current = record;
+        
+        // create the record
+        var record = new Record(numBlocks: sections.Count);
+ 
+        // loop through sections and append to the array of blocks in record
+        for(int cursor = 1; cursor < sections.Count; cursor++) {  // make sure to add record to cache
+            record.Append(_blockService.Create(sections[cursor]));
         }
+
+        // cache record for later user
+        records.Add(record);
+        return record.Id;
     }
 
     public void Update(uint id, byte[] data) {

@@ -27,6 +27,6 @@ public interface IRecordService {
     /// <returns>
         /// returns the generated id (based on the first unique identifier of leading block)
     /// </returns>
-    uint Create(byte[] data);
+    uint Create(byte[] data, int contentSize);
 
 }
