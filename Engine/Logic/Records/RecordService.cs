@@ -17,7 +17,7 @@ public class RecordService : IRecordService {
             throw new InvalidOperationException("RecordService has already been initialized.");
         _initialized = true;
         _instance = new RecordService(blockService);
-        return _instance;
+        return Instance;
     }
 
     private RecordService(BlockService blockService) {

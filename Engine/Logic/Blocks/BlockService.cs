@@ -30,7 +30,7 @@ public sealed class BlockService : IBlockService {
             throw new InvalidOperationException("BlockService has already been initialized.");
         _initialized = true;
         _instance = new BlockService(stream);
-        return _instance;
+        return Instance;
     }
 
     private BlockService(Stream stream) {
@@ -110,7 +110,7 @@ public sealed class BlockService : IBlockService {
         this.stream.Seek(block.Id, SeekOrigin.Begin);
     }
 
-    protected virtual void HandleBlockDisposed(object? sender, EventArgs e)
+    protected void HandleBlockDisposed(object? sender, EventArgs e)
     {
         if (sender is not Block block) return;
         block.Disposed -= HandleBlockDisposed;
