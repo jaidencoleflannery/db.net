@@ -71,7 +71,7 @@ public class Block : IBlock {
 	}
 
 	public void AddHeader(uint id, BlockHeader header) {
-		if(!CrawlHeader()) 
+		if(!CrawlHeaders()) 
             throw new InvalidOperationException("Not enough space in block to append header.");
 		byte[] buffer = new byte[Storage.HeaderSize];
 
@@ -81,39 +81,40 @@ public class Block : IBlock {
 		this.stream.Write(buffer, position, service.HeaderSize);
     }
 
-	public void Read(byte[] buffer, int offset, int headerOffset, int count) {
-		if(isDisposed) 
-            throw new ObjectDisposedException("Block");
-		if((count + headerOffset) > service.ContentSize) 
+	public void Read(byte[] buffer, int offset, int count) {	
+		if((count + offset) > Storage.ContentSize) 
             throw new ArgumentOutOfRangeException($"Index ({nameof(count)} + {nameof(offset)}) location exceeds bounds of block content.");
-		if((service.ContentSize - (count + headerOffset)) > buffer.Length) 
+		if((Storage.ContentSize - offset) > buffer.Length)
             throw new ArgumentOutOfRangeException("Target buffer not large enough to fit contents.");
-		long blockStart = (long)Id * service.BlockSize;
-		// reset the stream position to the beginning of this block
-		this.stream.Seek(blockStart + headerOffset, SeekOrigin.Begin);
+        SeekStartOfBlock();
 		// read from block, starting at provided offset
 		this.stream.ReadExactly(buffer, offset, count);
 	}
 
-	public void Write(byte[] buffer, int offset, int headerOffset, int count) {
-		if(isDisposed) 
-            throw new ObjectDisposedException("Block");
-		if((count + headerOffset + offset) > service.ContentSize) 
+	public void Write(byte[] buffer, int offset, BlockHeader header, int count) {
+		if((count + offset) > service.ContentSize) 
             throw new ArgumentOutOfRangeException("Size of contents (count + offset) exceeds bounds of block content.");
-
-		this.stream.Write(buffer, offset + headerOffset, count);
+        AddHeader((_numHeaders + 1), header);
+		this.stream.Write(buffer, offset + Storage.HeaderSize, count);
 	}
 
+    // go to start of block
+    private void SeekStartOfBlock(int offset = 0) {
+        int blockPosition = (this.Id * Size) + offset;
+        this.stream.Seek(blockPosition, SeekOrigin.Begin);
+    }
+
     // bring stream pointer to the end of the block's data, or a specific header if the header id is provided
-    public bool CrawlHeaders(uint? id) {
+    private bool CrawlHeaders(uint? id) {
         // find disk position for the block, and then move forward 1 uint (Block Id) to reach the first header
-        int blockPosition = (this.Id * Size);
-        this.stream.Seek(blockPosition + sizeof(uint), SeekOrigin.Begin);
+        SeekStartOfBlock();
+        this.stream.Seek(sizeof(uint), SeekOrigin.Current);
         int readBytes = sizeof(uint);
         int headerCounter = 0;
         byte[] buffer = new byte[4];
         
-        while(readBytes + Storage.HeaderSize < Storage.BlockSize && headerCounter < _numHeaders) { // + headersize because we need to make sure we have at least enough room to read a header
+        while(readBytes + Storage.HeaderSize < Storage.BlockSize && headerCounter < _numHeaders) { 
+            // + headersize because we need to make sure we have at least enough room to read a header
             // check if the current header Id is the one we're looking for 
             this.stream.ReadExactly(buffer, 0, sizeof(uint)); // pushes the stream forward 4 bytes
             if(id != null && BinaryPrimitives.ReadUInt32LittleEndian(buffer) == id) {
@@ -138,13 +139,5 @@ public class Block : IBlock {
         }
         return true;
     }
-
-
-	public void Dispose() {
-		if (isDisposed) return;
-		isDisposed = true;
-		Disposed?.Invoke(this, EventArgs.Empty);
-		GC.SuppressFinalize(this);
-	}
 
 }
