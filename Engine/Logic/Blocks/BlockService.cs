@@ -36,10 +36,10 @@ public sealed class BlockService : IBlockService {
     private BlockService(Stream stream) {
         if(stream == null)
             throw new ArgumentException($"Parameter {nameof(stream)} is null.");
-        if(blockSize <= headerSize)
-            throw new ArgumentException($"Parameter {nameof(blockSize)} cannot be less than or equal to {nameof(headerSize)}, since {nameof(headerSize)} is contained within the block.");
-        if(blockSize < 128)
-            throw new ArgumentException($"Parameter {nameof(blockSize)} cannot be less than 128 bytes."); 
+        if(Storage.BlockSize <= Storage.HeaderSize)
+            throw new ArgumentException($"Parameter {nameof(Storage.BlockSize)} cannot be less than or equal to {nameof(Storage.HeaderSize)}, since {nameof(Storage.HeaderSize)} is contained within the block.");
+        if(Storage.BlockSize < 128)
+            throw new ArgumentException($"Parameter {nameof(Storage.BlockSize)} cannot be less than 128 bytes."); 
 
         this.stream = stream;
     }
@@ -49,20 +49,24 @@ public sealed class BlockService : IBlockService {
         if(blocks.TryGetValue(id, out IBlock block)) return block;
 
         // {blockId} is ordered, so we can find our position by scaling off {blockSize}
-        int position = (int)(id * blockSize);
+        int position = (int)(id * Storage.BlockSize);
         // we are attempting to read a {blockSize} worth of data from stream, so if there is less than between position and end of stream, we will be hitting memory that is not ours
-        if((position + blockSize) > this.stream.Length)
-            return null; 
+        if((position + Storage.BlockSize) > this.stream.Length)
+            throw new InvalidOperationException("Hit end of stream - provided Id is most likely invalid.");
 
-        // just grab the first "sector" of data to construct our new block
-        byte[] buffer = new byte[UnitOfWork];
-        int readBytes = this.stream.Read(buffer, position, UnitOfWork);
+        // grab the block
+        byte[] buffer = new byte[Storage.BlockSize];
+        SeekStartOfBlock(id);
+        this.stream.Read(buffer, position, Storage.BlockSize);
 
         // add our block in memory and cache it for future use
         // get header values
-        uint nextBlockId = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(4, 4));
-        uint usedLength = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(4, 4));
-        var header = new BlockHeader(id, nextBlockId, usedLength);
+        uint id = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(0, 4));
+        uint offset = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(4, 4));
+        uint nextBlockId = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(8, 4));
+        uint usedLength = BinaryPrimitives.ReadUInt32LittleEndian(buffer.AsSpan(12, 4));
+
+        var header = new BlockHeader(id, offset, nextBlockId, usedLength);
 
         // section out our content from the header
         Span<byte> content = buffer.AsSpan(12);
@@ -108,6 +112,11 @@ public sealed class BlockService : IBlockService {
         this.stream.Flush();
         // make sure the stream cursor is at the correct slot
         this.stream.Seek(block.Id, SeekOrigin.Begin);
+    }
+
+    public void SeekStartOfBlock(int id, int offset = 0) {
+        int blockPosition = (id * Storage.BlockSize) + offset;
+        this.stream.Seek(blockPosition, SeekOrigin.Begin);
     }
 
     protected void HandleBlockDisposed(object? sender, EventArgs e)

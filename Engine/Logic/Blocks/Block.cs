@@ -25,7 +25,8 @@ public class Block : IBlock {
         this._headers = new Dictionary<int, BlockHeader>();
         this._numHeaders = 0;
 
-        this.Write(data, count: data.Length);	
+        this.AddHeader(data.Length, 0);
+        this.Write(data, 0);	
     }
 
     public Block(BlockService service, Stream stream, Span<byte> data) {
@@ -39,6 +40,7 @@ public class Block : IBlock {
         this._headers = new Dictionary<int, BlockHeader>();
         this._numHeaders = 0;
 
+        this.AddHeader(data.Length, 0);
         this.Write(data, count: data.Length);
 	}
 
@@ -69,14 +71,15 @@ public class Block : IBlock {
 	}
 
 	public void AddHeader(int dataSize, int offset) {
+        // get end of used block space (position is number of bytes)
 		if(!CrawlHeaders(out position)) 
             throw new InvalidOperationException("Not enough space in block to append header.");
-		byte[] buffer = new byte[Storage.HeaderSize];
 
-        // get end of used block space (position is number of bytes)
+        // generate a unique header based on the current block's num of headers
         BlockHeader header = new BlockHeader((_numHeaders + 1), (position + offset), 0, dataSize); 
 
 		// write the header to a buffer and push it to the stream
+        byte[] buffer = new byte[Storage.HeaderSize];
 		header.ToBuffer(buffer);
         // our stream pointer should be at the end of the used block space after CrawlHeader()
 		this.stream.Write(buffer, offset, service.HeaderSize);
@@ -92,15 +95,14 @@ public class Block : IBlock {
 		this.stream.ReadExactly(buffer, offset, count);
 	}
 
-	public void Write(BlockHeader header, byte[] data, int offset = 0, int count) {
-		if((count + offset) > service.ContentSize) 
+	public void Write(byte[] data) {
+		if((data.Length + offset) > service.ContentSize) 
             throw new ArgumentOutOfRangeException("Size of contents (count + offset) exceeds bounds of block content.");
-        AddHeader(data.Length, offset);
-		this.stream.Write(data, 0, count);
+		this.stream.Write(data, 0, data.Length);
 	}
 
     // go to start of block
-    private void SeekStartOfBlock(int offset = 0) {
+    public void SeekStartOfBlock(int offset = 0) {
         int blockPosition = (this.Id * Size) + offset;
         this.stream.Seek(blockPosition, SeekOrigin.Begin);
     }
