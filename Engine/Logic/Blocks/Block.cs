@@ -8,13 +8,16 @@ namespace db.net.Blocks;
 
 public class Block : IBlock {
 
+    public readonly uint Id;
+
     private const int _size = Storage.BlockSize;
     private int _numHeaders;
 	private readonly Stream _stream;
     private readonly BlockService _service;
 	private readonly Dictionary<int, BlockHeader> _headers;
- 
-	public Block(BlockService service, Stream stream, byte[] data) {
+
+    // constructors are for forming blocks as we pull them from disk
+    public Block(BlockService service, Stream stream, uint id) {
 		if(stream == null) 
 			throw new ArgumentNullException(nameof(_stream));
         if(service == null)
@@ -22,27 +25,30 @@ public class Block : IBlock {
 		this._stream = stream;
         this._service = service;
 
+        this.Id = id;
+
         this._headers = new Dictionary<int, BlockHeader>();
         this._numHeaders = 0;
-
-        this.AddHeader(data.Length, 0);
-        this.Write(data, 0);	
     }
 
-    public Block(BlockService service, Stream stream, Span<byte> data) {
-		if(stream == null) 
-			throw new ArgumentNullException(nameof(_stream));
-        if(service == null)
-            throw new ArgumentNullException(nameof(_service));
-		this._stream = stream;
-        this._service = service;
-
-        this._headers = new Dictionary<int, BlockHeader>();
-        this._numHeaders = 0;
-
+    // CreateBlock is for the generation and storing to disk of a new block from data
+    public static IBlock Create(BlockService service, Stream stream, uint Id, Span<byte> data) {
+        var block = new Block(service, stream, id);
+        
         this.AddHeader(data.Length, 0);
         this.Write(data, count: data.Length);
-	}
+
+        return block;
+    }
+
+    public IBlock Create(BlockService service, Stream stream, byte[] data) {
+        var block = new Block(service, stream);
+        
+        this.AddHeader(data.Length, 0);
+        this.Write(data, count: data.Length);
+
+        return block;
+    }
 
     // headers have their own contained IDs
 	public BlockHeader GetHeader(int id) {

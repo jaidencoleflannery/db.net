@@ -52,12 +52,12 @@ public sealed class BlockService : IBlockService {
         int position = (int)(id * Storage.BlockSize);
         // we are attempting to read a {blockSize} worth of data from stream, so if there is less than between position and end of stream, we will be hitting memory that is not ours
         if((position + Storage.BlockSize) > this.stream.Length)
-            throw new InvalidOperationException("Hit end of stream - provided Id is most likely invalid.");
+            throw new InvalidOperationException("Hit end of stream - provided Id is most likely invalid."); 
+        SeekStartOfBlock(id);
 
         // grab the block
         byte[] buffer = new byte[Storage.BlockSize];
-        SeekStartOfBlock(id);
-        this.stream.Read(buffer, position, Storage.BlockSize);
+        this.stream.Read(buffer, 0, Storage.BlockSize);
 
         // add our block in memory and cache it for future use
         // get header values
@@ -70,18 +70,18 @@ public sealed class BlockService : IBlockService {
 
         // section out our content from the header
         Span<byte> content = buffer.AsSpan(12);
-        block = new Block(this, this.stream, content, header);
+        block = Block.Create(this, this.stream, content, header);
         OnBlockInitialized(block);
         return block;
     }
 
     public IBlock Create(byte[]? data) {
         // if the length of stream isnt an exact multiple of blockSize, our position is funky
-        if((this.stream.Length % blockSize) != 0)
+        if((this.stream.Length % Storage.BlockSize) != 0)
             throw new DataMisalignedException($"Unexpected length, stream is misaligned: {this.stream.Length}");
 
         // this service is just spinning up the 4kb blocks of data - recordservice handles the actual data handling and partitioning
-        if(data.Length > contentSize)
+        if(data.Length > Storage.ContentSize)
             throw new ArgumentException($"{nameof(data)}'s size is larger than the expected content size.");
 
         // our blocks are indexed by position, so we can find the block by iterating through n blocks and assigning the length
@@ -89,10 +89,10 @@ public sealed class BlockService : IBlockService {
         var id = (uint)Math.Ceiling((double)this.stream.Length / (double)this.blockSize); 
 
         // setup block header first
-        // this id is the data's position within the block
-        var header = new BlockHeader(0, 0, (uint)data.Length); 
+        // this id is the data's position within the block, so 0 to start
+        var header = new BlockHeader(0, 0, 0, (uint)data.Length); 
         // create our in memory block, cache it, and save it to our file
-        Block block = new Block(this, id, this.stream, data, header); 
+        Block block = Block.Create(this, id, this.stream, data, header); 
         OnBlockInitialized(block);
         return block;
     }
