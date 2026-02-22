@@ -14,7 +14,7 @@ public class Block : IBlock {
     private readonly BlockService _service;
 	private readonly Dictionary<int, BlockHeader> _headers;
  
-	public Block(BlockService service, Stream stream, byte[] data, BlockHeader header) {
+	public Block(BlockService service, Stream stream, byte[] data) {
 		if(stream == null) 
 			throw new ArgumentNullException(nameof(_stream));
         if(service == null)
@@ -22,27 +22,25 @@ public class Block : IBlock {
 		this._stream = stream;
         this._service = service;
 
-        this._headers = new();
+        this._headers = new Dictionary<int, BlockHeader>();
         this._numHeaders = 0;
 
-		this._headers.Add(header.Id, header);
-        this._Write(data);
-	}
-
-    public Block(BlockService service, Stream stream, byte[] data, BlockHeader header) {
-		if(stream == null) 
-			throw new ArgumentNullException(nameof(_stream));
-        if(service == null)
-            throw new ArgumentNullException(nameof(_service));
-		this._stream = stream;
-        this._service = service;
-
-        this._headers = new();
-        this._numHeaders = 0;
-
-		this._headers.Add(header.Id, header);
-        this._Write(data);	
+        this.Write(data, count: data.Length);	
     }
+
+    public Block(BlockService service, Stream stream, Span<byte> data) {
+		if(stream == null) 
+			throw new ArgumentNullException(nameof(_stream));
+        if(service == null)
+            throw new ArgumentNullException(nameof(_service));
+		this._stream = stream;
+        this._service = service;
+
+        this._headers = new Dictionary<int, BlockHeader>();
+        this._numHeaders = 0;
+
+        this.Write(data, count: data.Length);
+	}
 
     // headers have their own contained IDs
 	public BlockHeader GetHeader(int id) {
@@ -70,15 +68,18 @@ public class Block : IBlock {
         return header[id];
 	}
 
-	public void AddHeader(uint id, BlockHeader header) {
-		if(!CrawlHeaders()) 
+	public void AddHeader(int dataSize, int offset) {
+		if(!CrawlHeaders(out position)) 
             throw new InvalidOperationException("Not enough space in block to append header.");
 		byte[] buffer = new byte[Storage.HeaderSize];
+
+        // get end of used block space (position is number of bytes)
+        BlockHeader header = new BlockHeader((_numHeaders + 1), (position + offset), 0, dataSize); 
 
 		// write the header to a buffer and push it to the stream
 		header.ToBuffer(buffer);
         // our stream pointer should be at the end of the used block space after CrawlHeader()
-		this.stream.Write(buffer, position, service.HeaderSize);
+		this.stream.Write(buffer, offset, service.HeaderSize);
     }
 
 	public void Read(byte[] buffer, int offset, int count) {	
@@ -91,11 +92,11 @@ public class Block : IBlock {
 		this.stream.ReadExactly(buffer, offset, count);
 	}
 
-	public void Write(byte[] buffer, int offset, BlockHeader header, int count) {
+	public void Write(BlockHeader header, byte[] data, int offset = 0, int count) {
 		if((count + offset) > service.ContentSize) 
             throw new ArgumentOutOfRangeException("Size of contents (count + offset) exceeds bounds of block content.");
-        AddHeader((_numHeaders + 1), header);
-		this.stream.Write(buffer, offset + Storage.HeaderSize, count);
+        AddHeader(data.Length, offset);
+		this.stream.Write(data, 0, count);
 	}
 
     // go to start of block
@@ -105,7 +106,7 @@ public class Block : IBlock {
     }
 
     // bring stream pointer to the end of the block's data, or a specific header if the header id is provided
-    private bool CrawlHeaders(uint? id) {
+    private bool CrawlHeaders(uint? id, out int readBytes) {
         // find disk position for the block, and then move forward 1 uint (Block Id) to reach the first header
         SeekStartOfBlock();
         this.stream.Seek(sizeof(uint), SeekOrigin.Current);
