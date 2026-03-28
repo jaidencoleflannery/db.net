@@ -1,4 +1,4 @@
 # db.net
-a space efficient object database.
+a space efficient database engine.
 
 > **status:** in development.
